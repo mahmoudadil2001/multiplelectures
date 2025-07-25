@@ -1,25 +1,34 @@
 import streamlit as st
 import importlib
 import os
+import re
+
+def is_english_text(text):
+    """يتحقق إذا كان النص يحتوي فقط على حروف إنجليزية ومسافات"""
+    return bool(re.match(r'^[A-Za-z0-9\s.,;:?!\'"()%-]+$', text.strip()))
 
 def orders_o():
-    # البحث عن جميع ملفات mcqsX.py في المجلد الحالي
     available_lectures = []
+
     for i in range(1, 16):
         module_name = f"mcqs{i}.py"
         if os.path.exists(module_name):
             try:
                 mod = importlib.import_module(f"mcqs{i}")
                 if hasattr(mod, "questions") and len(mod.questions) > 0:
-                    # التحقق أن السؤال مكتوب بالإنجليزي (حروف A-Z)
-                    first_q = mod.questions[0].get("question", "")
-                    if any(c.isalpha() and c.lower() in "abcdefghijklmnopqrstuvwxyz" for c in first_q):
+                    all_english = True
+                    for q in mod.questions:
+                        question_text = q.get("question", "")
+                        if not is_english_text(question_text):
+                            all_english = False
+                            break
+                    if all_english:
                         available_lectures.append(f"Lecture {i}")
             except:
                 pass
 
     if not available_lectures:
-        st.error("⚠️ لا توجد محاضرات تحتوي على أسئلة باللغة الإنجليزية!")
+        st.error("⚠️ لا توجد محاضرات تحتوي أسئلة كاملة بالإنجليزية!")
         return
 
     lecture = st.selectbox("اختر المحاضرة", available_lectures)
@@ -35,7 +44,6 @@ def orders_o():
     question_prefix = f"Q{lecture_num}"
     questions = questions_module.questions
 
-    # إعادة تهيئة session_state عند تغيير عدد الأسئلة أو المحاضرة
     if ("questions_count" not in st.session_state) or \
        (st.session_state.questions_count != len(questions)) or \
        (st.session_state.get("current_lecture", None) != lecture):
