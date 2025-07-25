@@ -2,6 +2,7 @@ import streamlit as st
 import importlib
 import os
 import re
+from lectures_map import lectures_names  # استيراد القاموس
 
 def is_english_text(text):
     """يتحقق إذا كان النص يحتوي فقط على حروف إنجليزية ومسافات"""
@@ -10,9 +11,10 @@ def is_english_text(text):
 def orders_o():
     available_lectures = []
 
+    # بناء قائمة المحاضرات التي تحتوي أسئلة كاملة بالإنجليزية مع اسم المحاضرة
     for i in range(1, 16):
-        module_name = f"mcqs{i}.py"
-        if os.path.exists(module_name):
+        module_path = f"mcqs{i}.py"
+        if os.path.exists(module_path):
             try:
                 mod = importlib.import_module(f"mcqs{i}")
                 if hasattr(mod, "questions") and len(mod.questions) > 0:
@@ -23,8 +25,13 @@ def orders_o():
                             all_english = False
                             break
                     if all_english:
-                        available_lectures.append(f"Lecture {i}")
-            except:
+                        lecture_title = lectures_names.get(i, "")
+                        display_name = f"Lecture {i}"
+                        if lecture_title:
+                            display_name += f" - {lecture_title}"
+                        available_lectures.append(display_name)
+            except Exception as e:
+                # ممكن تحط logging هنا لو تحب، لكن حالياً نتجاهل الخطأ
                 pass
 
     if not available_lectures:
@@ -32,7 +39,13 @@ def orders_o():
         return
 
     lecture = st.selectbox("اختر المحاضرة", available_lectures)
-    lecture_num = int(lecture.split()[1])
+
+    # استخراج رقم المحاضرة من النص "Lecture X - الاسم"
+    match = re.match(r"Lecture (\d+)", lecture)
+    if not match:
+        st.error("تعذر التعرف على رقم المحاضرة")
+        return
+    lecture_num = int(match.group(1))
     module_name = f"mcqs{lecture_num}"
 
     try:
@@ -118,7 +131,7 @@ def orders_o():
             if st.button("أجب", key=f"submit_{index}"):
                 st.session_state.user_answers[index] = selected_answer
                 st.session_state.answer_shown[index] = True
-                st.rerun()
+                st.experimental_rerun()
         else:
             user_ans = st.session_state.user_answers[index]
             if user_ans == correct_text:
@@ -131,7 +144,7 @@ def orders_o():
                     st.session_state.current_question += 1
                 else:
                     st.session_state.quiz_completed = True
-                st.rerun()
+                st.experimental_rerun()
 
     if not st.session_state.quiz_completed:
         show_question(st.session_state.current_question)
@@ -153,4 +166,4 @@ def orders_o():
             st.session_state.user_answers = [None] * len(questions)
             st.session_state.answer_shown = [False] * len(questions)
             st.session_state.quiz_completed = False
-            st.rerun()
+            st.experimental_rerun()
