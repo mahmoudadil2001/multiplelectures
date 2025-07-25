@@ -1,13 +1,28 @@
 import streamlit as st
 import importlib
+import os
 
 def orders_o():
-    # إعداد قائمة المحاضرات تلقائيًا من 1 إلى 15
-    lectures = [f"Lecture {i}" for i in range(1, 16)]
+    # البحث عن جميع ملفات mcqsX.py في المجلد الحالي
+    available_lectures = []
+    for i in range(1, 16):
+        module_name = f"mcqs{i}.py"
+        if os.path.exists(module_name):
+            try:
+                mod = importlib.import_module(f"mcqs{i}")
+                if hasattr(mod, "questions") and len(mod.questions) > 0:
+                    # التحقق أن السؤال مكتوب بالإنجليزي (حروف A-Z)
+                    first_q = mod.questions[0].get("question", "")
+                    if any(c.isalpha() and c.lower() in "abcdefghijklmnopqrstuvwxyz" for c in first_q):
+                        available_lectures.append(f"Lecture {i}")
+            except:
+                pass
 
-    lecture = st.selectbox("اختر المحاضرة", lectures)
+    if not available_lectures:
+        st.error("⚠️ لا توجد محاضرات تحتوي على أسئلة باللغة الإنجليزية!")
+        return
 
-    # استخراج رقم المحاضرة من النص "Lecture X"
+    lecture = st.selectbox("اختر المحاضرة", available_lectures)
     lecture_num = int(lecture.split()[1])
     module_name = f"mcqs{lecture_num}"
 
@@ -18,7 +33,6 @@ def orders_o():
         return
 
     question_prefix = f"Q{lecture_num}"
-
     questions = questions_module.questions
 
     # إعادة تهيئة session_state عند تغيير عدد الأسئلة أو المحاضرة
