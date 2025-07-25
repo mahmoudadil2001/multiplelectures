@@ -1,6 +1,6 @@
 questions = [
     {
-        "question": "ما هي عاصمة مصر؟",
+        "question": "egypt capital?",
         "options": ["القاهرة", "الإسكندرية", "الجيزة", "الأقصر"],
         "answer": "القاهرة"
     },
