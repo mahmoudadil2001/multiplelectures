@@ -137,7 +137,7 @@ def orders_o():
             if user_ans == correct_text:
                 st.success("✅ إجابة صحيحة")
             else:
-                st.error(f"❌ الإجابة الصحيحة: {correct_text}")
+                st.error(f"❌ الإجابة: {correct_text}")
 
             if st.button("السؤال التالي", key=f"next_{index}"):
                 if index + 1 < len(questions):
