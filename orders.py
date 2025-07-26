@@ -113,8 +113,9 @@ def orders_o():
     def show_question(index):
         q = questions[index]
         correct_text = normalize_answer(q)
+        total_questions = len(questions)
 
-        st.markdown(f"### {question_prefix}/{index + 1}: {q['question']}")
+        st.markdown(f"### Q{index + 1}/{total_questions}: {q['question']}")
 
         default_idx = 0
         if st.session_state.user_answers[index] in q["options"]:
@@ -137,10 +138,10 @@ def orders_o():
             if user_ans == correct_text:
                 st.success("✅ إجابة صحيحة")
             else:
-                st.error(f"❌ الإجابة: {correct_text}")
+                st.error(f"❌ الإجابة الصحيحة: {correct_text}")
 
             if st.button("السؤال التالي", key=f"next_{index}"):
-                if index + 1 < len(questions):
+                if index + 1 < total_questions:
                     st.session_state.current_question += 1
                 else:
                     st.session_state.quiz_completed = True
