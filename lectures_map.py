@@ -1,7 +1,7 @@
 # lectures_map.py
 
 lectures_names = {
-    1: "",
+    1: "hi",
     2: "",
     3: "",
     4: "",
